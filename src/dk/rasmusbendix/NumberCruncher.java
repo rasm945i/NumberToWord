@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Scanner;
 import java.util.stream.Stream;
 
 public class NumberCruncher {
@@ -72,7 +71,10 @@ public class NumberCruncher {
         WordConstructor word = new WordConstructor();
         int currentWordIndex = 0;
 
-        ArrayList<WordConstructor> words = test(nums);
+        nums.forEach(Number::resetIndex);
+        nums.get(nums.size()-1).setIndex(-1);
+
+        ArrayList<WordConstructor> words = test(nums, new ArrayList<>(), nums.size()-1, nums.size()-1);
         for(WordConstructor match : words) {
             System.out.println("Match: " + match.getWord());
         }
@@ -81,94 +83,29 @@ public class NumberCruncher {
 
     }
 
-    public ArrayList<WordConstructor> bruteForce(ArrayList<Number> nums, ArrayList<WordConstructor> result, int index) {
+    public ArrayList<WordConstructor> test(ArrayList<Number> nums, ArrayList<WordConstructor> result,
+                                           int startIndex, int currentIndex) {
 
-        System.out.println("INDEX: " + index);
-        WordConstructor constructor = constructWord(nums);
-        Number current = nums.get(index);
+        // we reached the beginning, return our result
+        if(startIndex < 0)
+            return result;
 
-        for(int i = index; i < nums.size(); i++) {
-
-        }
-
-
-        if(!current.next()) {
-            index -= 1;
-            if(index < 0)
-                return result;
-
-            System.out.println("Resetting remaining numbers.");
-            for(int i = index; i < nums.size(); i++) {
-                nums.get(i).resetIndex();
-            }
-        }
-
-        System.out.println("Recursive call");
-        return bruteForce(nums, result, index);
-
-    }
-
-    public ArrayList<WordConstructor> test(ArrayList<Number> nums) {
-
-        ArrayList<WordConstructor> words = new ArrayList<>();
-        for(int i = nums.size()-1; i > 0; i--) {
-            for(int j = i; j < nums.size(); j++) {
-                System.out.println("Resetting index " + j);
-                nums.get(j).resetIndex();
-            }
-            words.addAll(doFlipping(nums, new ArrayList<>(), i));
-        }
-
-        return words;
-
-    }
-
-    public ArrayList<WordConstructor> doFlipping(ArrayList<Number> nums, ArrayList<WordConstructor> result, int index) {
-
-        for(int i = index; i < nums.size(); i++) {
-
-            Number number = nums.get(i);
+        while(nums.get(currentIndex).hasNext()) {
+            nums.get(currentIndex).next();
             WordConstructor wc = constructWord(nums);
             if(isWord(wc.getWord()))
                 result.add(wc);
-
-            if(number.next())
-                doFlipping(nums, result, i);
-
         }
 
-        return result;
+        nums.get(currentIndex).setIndex(-1);
+        // Move our "selector" one spot to the left, until it reaches the beginning of the word
+        if(currentIndex <= startIndex)
+            return test(nums, result, startIndex-1, nums.size()-1);
 
-    }
+        // Step left
+        // Move the flipping to the next character
+        return test(nums, result, startIndex, currentIndex-1);
 
-    public ArrayList<WordConstructor> recursive2(ArrayList<Number> nums, ArrayList<WordConstructor> result, int index) {
-
-        System.out.println("Index: " + index);
-        for(int i = index; i < nums.size(); i++) {
-            boolean success = nums.get(i).next();
-            WordConstructor wordConstructor = constructWord(nums);
-            if(isWord(wordConstructor.getWord()))
-                result.add(wordConstructor);
-            if(success)
-                recursive2(nums, result, i);
-        }
-
-        if(nums.get(index).isDone()) {
-            index -= 1;
-        }
-
-        if(index < 0)
-            return result;
-
-        System.out.println();
-        return recursive2(nums, result, index);
-
-    }
-
-    public boolean evaluate(ArrayList<Number> nums, WordConstructor constructor) {
-        constructor = constructWord(nums);
-        System.out.println("Evaluating: " + constructor.getWord());
-        return isWord(constructor.getWord());
     }
 
     public WordConstructor constructWord(ArrayList<Number> nums) {
@@ -182,37 +119,8 @@ public class NumberCruncher {
 
     }
 
-
-    public WordConstructor rec(ArrayList<Number> nums, WordConstructor current, int nextIndex) {
-
-        Number number = nums.get(nextIndex);
-        current.append(number.getChar());
-        boolean isWord = false;
-        if(!isWord(current.getWord())) {
-
-            while(number.next()) {
-                current.replaceLatest(number.getChar());
-                if(isWord(current.getWord())) {
-                    System.out.println("It is a word, " + current.getWord());
-                    isWord = true;
-                    break;
-                }
-            }
-
-        }
-
-        String word = current.getWord();
-        if(isWord && word.length() == nums.size()) {
-            System.out.println("Correct size, " + word.length());
-            return current;
-        }
-
-        System.out.println("Iteration at index " + nextIndex);
-        if(nextIndex >= nums.size())
-            return null;
-
-        return rec(nums, current, nextIndex+1);
-
+    public boolean isWord(ArrayList<Number> nums) {
+        return isWord(constructWord(nums).getWord());
     }
 
     public boolean isWord(String word) {
@@ -232,7 +140,7 @@ public class NumberCruncher {
             if(!Character.isDigit(ch))
                 throw new NumberFormatException("The input must be a number, but it contained '" + ch + "'");
             System.out.print(ch + ".. ");
-            list.add(numberMap.get(Integer.parseInt(String.valueOf(ch))));
+            list.add(numberMap.get(Integer.parseInt(String.valueOf(ch))).clone());
         }
 
         System.out.println();

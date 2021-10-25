@@ -1,5 +1,8 @@
 package dk.rasmusbendix;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 public class Number {
 
     private int currentIndex;
@@ -9,7 +12,7 @@ public class Number {
     public Number(int num, char ... chars) {
         this.number = num;
         this.associatedLetters = chars;
-        this.currentIndex = 0;
+        this.currentIndex = -1;
     }
 
     public int getNumber() {
@@ -17,23 +20,37 @@ public class Number {
     }
 
     public boolean next() {
-        if(currentIndex+1 >= associatedLetters.length)
+        if(!hasNext())
             return false;
         System.out.println("Increase.");
         currentIndex++;
         return true;
     }
 
-    public boolean isDone() {
-        return currentIndex+1 >= associatedLetters.length;
+    public boolean hasNext() {
+        return currentIndex+1 < associatedLetters.length;
     }
 
     public void resetIndex() {
         currentIndex = 0;
     }
 
+    public void setIndex(int i) {
+        currentIndex = i;
+    }
+
     public char getChar() {
+        if(currentIndex < 0 || currentIndex >= associatedLetters.length)
+            throw new ArrayIndexOutOfBoundsException(getNumber() + " " + Arrays.toString(associatedLetters));
         return associatedLetters[currentIndex];
+    }
+
+    public int getCurrentIndex() {
+        return currentIndex;
+    }
+
+    public int getMaxIndex() {
+        return associatedLetters.length;
     }
 
     public boolean contains(char ch) {
@@ -44,4 +61,7 @@ public class Number {
         return false;
     }
 
+    public Number clone() {
+        return new Number(getNumber(), associatedLetters);
+    }
 }
