@@ -12,7 +12,7 @@ public class Number {
     public Number(int num, char ... chars) {
         this.number = num;
         this.associatedLetters = chars;
-        this.currentIndex = -1;
+        this.currentIndex = 0;
     }
 
     public int getNumber() {

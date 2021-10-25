@@ -68,43 +68,42 @@ public class NumberCruncher {
         System.out.println("Searching ...");
 
         ArrayList<Number> nums = numbersToNumList(numeric);
-        WordConstructor word = new WordConstructor();
-        int currentWordIndex = 0;
+        StringBuilder builder = new StringBuilder();
+        for(Number number : nums) {
+            builder.append(number.getNumber());
+        }
 
-        nums.forEach(Number::resetIndex);
-        nums.get(nums.size()-1).setIndex(-1);
-
-        ArrayList<WordConstructor> words = test(nums, new ArrayList<>(), nums.size()-1, nums.size()-1);
-        for(WordConstructor match : words) {
-            System.out.println("Match: " + match.getWord());
+        System.out.println("Numbers: " + builder.toString());
+        ArrayList<String> words = bruteForce(builder.toString(), rightChars);
+        for(String match : words) {
+            System.out.println("Match: " + match);
         }
 
         return null;
 
     }
 
-    public ArrayList<WordConstructor> test(ArrayList<Number> nums, ArrayList<WordConstructor> result,
-                                           int startIndex, int currentIndex) {
+    public ArrayList<String> bruteForce(String inputNumber, ArrayList<String> wordList) {
 
-        // we reached the beginning, return our result
-        if(startIndex < 0)
-            return result;
+        ArrayList<String> result = new ArrayList<>();
+        HashMap<String, String> numberToWordMap = new HashMap<>();
 
-        while(nums.get(currentIndex).hasNext()) {
-            nums.get(currentIndex).next();
-            WordConstructor wc = constructWord(nums);
-            if(isWord(wc.getWord()))
-                result.add(wc);
+        for(String word : wordList) {
+            StringBuilder  builder = new StringBuilder();
+            ArrayList<Number> nums = wordToNumList(word);
+            for(Number num : nums) {
+                builder.append(num.getNumber());
+            }
+            numberToWordMap.put(word, builder.toString());
         }
 
-        nums.get(currentIndex).setIndex(-1);
-        // Move our "selector" one spot to the left, until it reaches the beginning of the word
-        if(currentIndex <= startIndex)
-            return test(nums, result, startIndex-1, nums.size()-1);
+        for(String word : numberToWordMap.keySet()) {
+//            System.out.println("Comparing: " + numberToWordMap.get(word) + " " + inputNumber);
+            if(inputNumber.equalsIgnoreCase(numberToWordMap.get(word)))
+                result.add(word);
+        }
 
-        // Step left
-        // Move the flipping to the next character
-        return test(nums, result, startIndex, currentIndex-1);
+        return result;
 
     }
 
